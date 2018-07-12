@@ -477,7 +477,7 @@ class LDAPAuthenticator(Authenticator):
             return None
 
         if self.lookup_dn:
-            username, resolved_dn = self.resolve_username(username)
+            username, resolved_dn = self.resolve_username(login)
             if not username:
                 return None
             if str(self.lookup_dn_user_dn_attribute).upper() == "CN":
