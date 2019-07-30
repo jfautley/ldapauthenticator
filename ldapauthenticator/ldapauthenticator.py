@@ -1,5 +1,5 @@
 import re
-import mmh
+import mmh3
 
 import ldap3
 from jupyterhub.auth import Authenticator
@@ -10,13 +10,6 @@ from traitlets import Int
 from traitlets import List
 from traitlets import Unicode
 from traitlets import Union
-
-# Constants
-# https://pagure.io/SSSD/sssd/blob/master/f/src/lib/idmap/sss_idmap_private.h
-IDMAP_UPPER    = 2000200000
-IDMAP_LOWER    = 200000
-IDMAP_RANGE    = 200000
-SSS_MAX_SLICES = (IDMAP_UPPER - IDMAP_LOWER) / IDMAP_RANGE
 
 class LDAPAuthenticator(Authenticator):
     server_address = Unicode(
@@ -386,21 +379,21 @@ class LDAPAuthenticator(Authenticator):
         )
         return conn
 
-    def get_user_attributes(self, conn, userdn):
+    def get_user_attributes(self, conn, username):
         attrs = {}
 
         search_filter = self.lookup_dn_search_filter.format(
-            login_attr=self.user_attribute, login=username_supplied_by_user
+            login_attr=self.user_attribute, login=username
         )
         found = conn.search(
             search_base=self.user_search_base,
             search_scope=ldap3.SUBTREE,
             search_filter=search_filter,
-            attributes=ldap3.ALL_OPERATIONAL_ATTRIBUTES,
+            attributes=ldap3.ALL_ATTRIBUTES,
         )
         if found:
             attrs = conn.entries[0].entry_attributes_as_dict
-            self.log.debug("Lookup returned %d attributes for %s", len(attrs), userdn)
+            self.log.debug("Lookup returned %d attributes for %s", len(attrs), username)
 
         return attrs
 
@@ -584,8 +577,15 @@ class LDAPAuthenticator(Authenticator):
             return data["username"]
 
         if self.populate_sssd:
-            user_attributes = self.get_user_attributes(conn, userdn)
-            splitsid = user_attributes['objectSid'].rpartition('-')
+            # Constants
+            # https://pagure.io/SSSD/sssd/blob/master/f/src/lib/idmap/sss_idmap_private.h
+            IDMAP_UPPER    = 2000200000
+            IDMAP_LOWER    = 200000
+            IDMAP_RANGE    = 200000
+            SSS_MAX_SLICES = (IDMAP_UPPER - IDMAP_LOWER) / IDMAP_RANGE
+
+            user_attributes = self.get_user_attributes(conn, username)
+            splitsid = user_attributes['objectSid'][0].rpartition('-')
             domain = splitsid[0]
             rid = int(splitsid[2])
 
@@ -593,7 +593,7 @@ class LDAPAuthenticator(Authenticator):
             domain_hash = mmh3.hash(domain, 0xdeadbeef, signed=False)
 
             # Generate slice
-            slice = domain_hash % max_slices
+            slice = domain_hash % SSS_MAX_SLICES
 
             # Calculate offset
             offset = (slice * IDMAP_RANGE) + IDMAP_LOWER
@@ -607,8 +607,8 @@ class LDAPAuthenticator(Authenticator):
             self.log.debug("UserID: %d" % userID)
 
             # GroupID?
-            if primaryGroupID in user_attributes:
-                groupID = (offset + user_attributes['primaryGroupId'])
+            if 'primaryGroupID' in user_attributes:
+                groupID = (offset + user_attributes['primaryGroupID'][0])
                 self.log.debug("GroupID: %d" % groupID)
 
             return {
