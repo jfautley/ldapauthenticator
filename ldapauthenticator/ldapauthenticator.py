@@ -1,4 +1,5 @@
 import re
+import mmh
 
 import ldap3
 from jupyterhub.auth import Authenticator
@@ -10,6 +11,12 @@ from traitlets import List
 from traitlets import Unicode
 from traitlets import Union
 
+# Constants
+# https://pagure.io/SSSD/sssd/blob/master/f/src/lib/idmap/sss_idmap_private.h
+IDMAP_UPPER    = 2000200000
+IDMAP_LOWER    = 200000
+IDMAP_RANGE    = 200000
+SSS_MAX_SLICES = (IDMAP_UPPER - IDMAP_LOWER) / IDMAP_RANGE
 
 class LDAPAuthenticator(Authenticator):
     server_address = Unicode(
@@ -231,6 +238,19 @@ class LDAPAuthenticator(Authenticator):
         c.LDAPAuthenticator.allowed_groups = [
             'CN=JupyterHub_Users,OU=Groups,DC=example,DC=org']
         ```
+        """
+    )
+
+
+    populate-sssd = Bool(
+        True,
+        config=True,
+        help="""
+        Populate the user object with the attributes from SSSD. This uses a
+        Python reimplementation of the SSSD AD/LDAP ID mapping code.
+
+        This populates the uid and gid entries in the returned authentication
+        state.
         """
     )
 
@@ -594,6 +614,41 @@ class LDAPAuthenticator(Authenticator):
             self.log.debug("username:%s attributes:%s", username, user_info)
             return {"name": username, "auth_state": user_info}
         return username
+
+        if self.populate_sssd:
+            user_attributes = self.get_user_attributes(conn, userdn, ['objectSid', 'primaryGroupID'])
+            splitsid = user_attributes['objectSid'].rpartition('-')
+            domain = splitsid[0]
+            rid = int(splitsid[2])
+
+            # Generate MurmurHash3 of Domain SID
+            domain_hash = mmh3.hash(domain, 0xdeadbeef, signed=False)
+
+            # Generate slice
+            slice = domain_hash % max_slices
+
+            # Calculate offset
+            offset = (slice * IDMAP_RANGE) + IDMAP_LOWER
+
+            # Print some info
+            self.log.debug("Domain Hash : %d" % domain_hash)
+            self.log.debug("Domain Slice: %d" % slice)
+            self.log.debug("Base offset : %d" % offset)
+            # UserID
+            userID = (offset + rid)
+            self.log.debug("UserID: %d" % userID)
+
+            # GroupID?
+            if primaryGroupID in user_attributes:
+                groupID = (offset + user_attributes['primaryGroupId'])
+                self.log.debug("GroupID: %d" % groupID)
+
+            return {
+                'name': username,
+                'auth_state': {'uid': userID, 'gid': groupID},
+            }
+        else:
+            return username
 
 if __name__ == "__main__":
     import getpass
