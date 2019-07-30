@@ -388,9 +388,15 @@ class LDAPAuthenticator(Authenticator):
 
     def get_user_attributes(self, conn, userdn):
         attrs = {}
+
+        search_filter = self.lookup_dn_search_filter.format(
+            login_attr=self.user_attribute, login=username_supplied_by_user
+        )
         found = conn.search(
-            userdn,
-            '(objectClass=user)'
+            search_base=self.user_search_base,
+            search_scope=ldap3.SUBTREE,
+            search_filter=search_filter,
+            attributes=ldap3.ALL_OPERATIONAL_ATTRIBUTES,
         )
         if found:
             attrs = conn.entries[0].entry_attributes_as_dict
