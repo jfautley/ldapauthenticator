@@ -663,10 +663,13 @@ class LDAPAuthenticator(Authenticator):
                      'name': user_attributes['sAMAccountName'][0],
                      'extra': user_attributes}
 
-            return {
+            retval = {
                 'name': username,
                 'auth_state': state,
             }
+            sys.log.debug("Returning auth state: [%s]", retval)
+
+            return retval
         else:
             return username
 
