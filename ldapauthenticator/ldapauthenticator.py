@@ -351,14 +351,14 @@ class LDAPAuthenticator(Authenticator):
             msg.format(
                 search_base=self.user_search_base,
                 search_filter=search_filter,
-                attributes=self.user_attribute,
+                attributes=self.lookup_dn_user_dn_attribute,
             )
         )
         conn.search(
             search_base=self.user_search_base,
             search_scope=ldap3.SUBTREE,
             search_filter=search_filter,
-            attributes=[self.user_attribute],
+            attributes=[self.lookup_dn_user_dn_attribute],
         )
         response = conn.response
         if len(response) == 0 or "attributes" not in response[0].keys():
@@ -578,8 +578,7 @@ class LDAPAuthenticator(Authenticator):
             return data["username"]
 
         if self.populate_sssd:
-            user_dn = self.resolve_username(username)
-            user_attributes = self.get_user_attributes(conn, user_dn)
+            user_attributes = self.get_user_attributes(conn, userdn)
             splitsid = user_attributes['objectSid'].rpartition('-')
             domain = splitsid[0]
             rid = int(splitsid[2])
