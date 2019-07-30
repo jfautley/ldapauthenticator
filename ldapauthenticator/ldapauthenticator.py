@@ -242,7 +242,7 @@ class LDAPAuthenticator(Authenticator):
     )
 
 
-    populate-sssd = Bool(
+    populate_sssd = Bool(
         True,
         config=True,
         help="""
