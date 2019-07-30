@@ -363,7 +363,7 @@ class LDAPAuthenticator(Authenticator):
             search_base=self.user_search_base,
             search_scope=ldap3.SUBTREE,
             search_filter=search_filter,
-            attributes=[self.lookup_dn_user_dn_attribute],
+            attributes=[self.user_attribute],
         )
         response = conn.response
         if len(response) == 0 or "attributes" not in response[0].keys():
