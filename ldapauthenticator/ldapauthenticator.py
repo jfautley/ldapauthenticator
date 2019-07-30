@@ -417,6 +417,7 @@ class LDAPAuthenticator(Authenticator):
 
     def get_user_attributes(self, conn, userdn):
         attrs = {}
+<<<<<<< HEAD
         if self.auth_state_attributes:
             found = conn.search(
                 userdn, "(objectClass=*)", attributes=self.auth_state_attributes
