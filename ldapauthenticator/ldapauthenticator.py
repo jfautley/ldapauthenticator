@@ -388,13 +388,13 @@ class LDAPAuthenticator(Authenticator):
 
     def get_user_attributes(self, conn, userdn, attribs):
         attrs = {}
-        if self.user_info_attributes:
-            found = conn.search(
-                userdn,
-                '(objectClass=user)',
-                attributes=attribs)
-            if found:
-                attrs = conn.entries[0].entry_attributes_as_dict
+        found = conn.search(
+            userdn,
+            '(objectClass=user)',
+            attributes=attribs)
+        if found:
+            attrs = conn.entries[0].entry_attributes_as_dict
+
         return attrs
 
     @gen.coroutine
