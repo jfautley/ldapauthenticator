@@ -667,7 +667,7 @@ class LDAPAuthenticator(Authenticator):
                 'name': username,
                 'auth_state': state,
             }
-            sys.log.debug("Returning auth state: [%s]", retval)
+            self.log.debug("Returning auth state: [%s]", retval)
 
             return retval
         else:
