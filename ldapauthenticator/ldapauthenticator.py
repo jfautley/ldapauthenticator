@@ -660,8 +660,8 @@ class LDAPAuthenticator(Authenticator):
 
             retval = {'name': username,
                       'auth_state': {
-                        'uid': str(userID),
-                        'gid': str(groupID),
+                        'uid': int(userID),
+                        'gid': int(groupID),
                         'name': user_attributes['sAMAccountName'][0]
                        }
                      }
@@ -685,8 +685,7 @@ class LDAPAuthenticator(Authenticator):
         if 'gid' in auth_state:
             spawner.environment['NB_GID'] = str(auth_state['gid'])
 
-        spawner.environment['NB_USER'] = auth_state['sAMAccountName']
-        self.log.debug("After pre_spawn_start, spawner.environment is: [%s]", spawner.environment)
+        spawner.environment['NB_USER'] = auth_state['name']
 
 if __name__ == "__main__":
     import getpass
