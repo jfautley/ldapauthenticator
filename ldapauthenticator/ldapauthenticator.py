@@ -386,14 +386,15 @@ class LDAPAuthenticator(Authenticator):
         )
         return conn
 
-    def get_user_attributes(self, conn, userdn, attribs):
+    def get_user_attributes(self, conn, userdn):
         attrs = {}
         found = conn.search(
             userdn,
-            '(objectClass=user)',
-            attributes=attribs)
+            '(objectClass=user)'
+        )
         if found:
             attrs = conn.entries[0].entry_attributes_as_dict
+            self.log.debug("Lookup returned %d attributes for %s", len(attrs), userdn)
 
         return attrs
 
