@@ -665,6 +665,21 @@ class LDAPAuthenticator(Authenticator):
         else:
             return username
 
+
+    @gen.coroutine
+        def pre_spawn_start(self, user, spawner):
+            auth_state = yield user.get_auth_state()
+            self.log.debug('pre_spawn_start auth_state:i %s' % auth_state)
+            if not auth_state:
+                return
+            # setup environment
+            spawner.environment['NB_UID'] = str(
+                auth_state['uid'])
+            if 'gid' in auth_state:
+                spawner.environment['NB_GID'] = str(
+                    auth_state['gid'])
+            spawner.environment['NB_USER'] = auth_state['sAMAccountName']
+
 if __name__ == "__main__":
     import getpass
 
