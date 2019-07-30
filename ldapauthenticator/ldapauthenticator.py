@@ -578,7 +578,8 @@ class LDAPAuthenticator(Authenticator):
             return data["username"]
 
         if self.populate_sssd:
-            user_attributes = self.get_user_attributes(conn, userdn)
+            user_dn = self.resolve_username(username)
+            user_attributes = self.get_user_attributes(conn, user_dn)
             splitsid = user_attributes['objectSid'].rpartition('-')
             domain = splitsid[0]
             rid = int(splitsid[2])
