@@ -611,15 +611,14 @@ class LDAPAuthenticator(Authenticator):
                 groupID = (offset + user_attributes['primaryGroupID'][0])
                 self.log.debug("GroupID: %d" % groupID)
 
-            state = {'uid': userID,
-                     'gid': groupID,
-                     'name': user_attributes['sAMAccountName'][0],
-                     'extra': user_attributes}
+            retval = {'name': username,
+                      'auth_state': {
+                        'uid': str(userID),
+                        'gid': str(groupID),
+                        'name': user_attributes['sAMAccountName'][0]
+                       }
+                     }
 
-            retval = {
-                'name': username,
-                'auth_state': state,
-            }
             self.log.debug("Returning auth state: [%s]", retval)
 
             return retval
