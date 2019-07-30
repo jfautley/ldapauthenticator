@@ -611,9 +611,14 @@ class LDAPAuthenticator(Authenticator):
                 groupID = (offset + user_attributes['primaryGroupID'][0])
                 self.log.debug("GroupID: %d" % groupID)
 
+            state = {'uid': userID,
+                     'gid': groupID,
+                     'name': user_attributes['sAMAccountName'][0],
+                     'extra': user_attributes}
+
             return {
                 'name': username,
-                'auth_state': {'uid': userID, 'gid': groupID},
+                'auth_state': state,
             }
         else:
             return username
@@ -622,7 +627,7 @@ class LDAPAuthenticator(Authenticator):
     @gen.coroutine
     def pre_spawn_start(self, user, spawner):
         auth_state = yield user.get_auth_state()
-        self.log.debug('pre_spawn_start auth_state:i %s' % auth_state)
+        self.log.debug('pre_spawn_start user: [%s] auth_state: [%s]' % (auth_state, user))
         if not auth_state:
             return
         # setup environment
