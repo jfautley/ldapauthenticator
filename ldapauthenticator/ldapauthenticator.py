@@ -615,14 +615,13 @@ class LDAPAuthenticator(Authenticator):
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
             search_filter='(member:1.2.840.113556.1.4.1941:={dn})'.format(dn=escape_filter_chars(user_attributes['distinguishedName'][0]))
-            search_attribs=['cn', 'objectSid']
             search_base=self.group_search_base.split(',')[1:]
 
             conn.search(
-                search_base=self.search_base,
+                search_base=search_base,
                 search_scope=ldap3.SUBTREE,
                 search_filter=search_filter,
-                attributes=search_attribs)
+                attributes=['cn', 'objectSid'])
 
             for group in conn.response:
               self.log.debug("Processing group %s", group)
