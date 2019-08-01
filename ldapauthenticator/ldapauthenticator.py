@@ -625,7 +625,7 @@ class LDAPAuthenticator(Authenticator):
                 attributes=['cn', 'objectSid', 'sAMAccountName'])
 
             for group_response in conn.response:
-              self.log.debug("Processing group %s", group)
+              self.log.debug("Processing group %s", group_response)
               group      = group_response['attributes']['cn']
               group_sid  = group_response['attributes']['objectSid']
               group_acct = group_response['attributes']['sAMAccountName']
