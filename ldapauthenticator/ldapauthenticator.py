@@ -611,6 +611,21 @@ class LDAPAuthenticator(Authenticator):
                 groupID = (offset + user_attributes['primaryGroupID'][0])
                 self.log.debug("GroupID: %d" % groupID)
 
+            # Add supplementary groups (if available)
+            if 'memberOf' in user_attributes:
+               for group in user_attributes['memberOf']:
+                 if 'OU=Unixgroups' in group:
+                   # This is a UNIX group
+                   self.log.debug("Found UNIX group: %s", group)
+                   group_sid = conn.search(
+                                 search_base=group,
+                                 search_scope=ldap3.BASE,
+                                 attributes=['objectSid'])
+                   self.log.debug("Group SID lookup returned: [%s]", group_sid)
+                   group_rid = group_sid['objectSid'][0].rpartition('-')[2]
+                   group_gid = (offset + group_rid)
+                   self.log.debug("Found supplementary group ID: %d", int(group_gid))
+
             retval = {'name': username,
                       'auth_state': {
                         'uid': int(userID),
