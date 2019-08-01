@@ -622,10 +622,10 @@ class LDAPAuthenticator(Authenticator):
                              search_scope=ldap3.BASE,
                              search_filter='(objectClass=group)',
                              attributes=ldap3.ALL_ATTRIBUTES)
-                   group_sid = conn.response
+                   group_info = conn.entries[0].entry_attributes_as_dict
 
-                   self.log.debug("Group SID lookup returned: [%s]", group_sid)
-                   group_rid = group_sid['objectSid'][0].rpartition('-')[2]
+                   self.log.debug("Group SID lookup returned: [%s]", group_info)
+                   group_rid = group_info['objectSid'][0].rpartition('-')[2]
                    group_gid = (offset + group_rid)
                    self.log.debug("Found supplementary group ID: %d", int(group_gid))
 
