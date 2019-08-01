@@ -619,8 +619,9 @@ class LDAPAuthenticator(Authenticator):
                    self.log.debug("Found UNIX group: %s", group)
                    group_sid = conn.search(
                                  search_base=group,
-                                 search_scope=ldap3.ONELEVEL,
-                                 search_filter='(objectClass=group)')
+                                 search_scope=ldap3.BASE,
+                                 search_filter='(objectClass=group)',
+                                 attributes=ldap3.ALL_ATTRIBUTES)
                    self.log.debug("Group SID lookup returned: [%s]", group_sid)
                    group_rid = group_sid['objectSid'][0].rpartition('-')[2]
                    group_gid = (offset + group_rid)
