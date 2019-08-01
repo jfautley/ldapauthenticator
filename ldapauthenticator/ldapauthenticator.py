@@ -612,22 +612,22 @@ class LDAPAuthenticator(Authenticator):
                 self.log.debug("GroupID: %d" % groupID)
 
             # Add supplementary groups (if available)
-            if 'memberOf' in user_attributes:
-               for group in user_attributes['memberOf']:
-                 if 'OU=Unixgroups' in group:
-                   # This is a UNIX group
-                   self.log.debug("Found UNIX group: %s", group)
-                   conn.search(
-                             search_base=group,
-                             search_scope=ldap3.BASE,
-                             search_filter='(objectClass=group)',
-                             attributes=['objectSid', 'sAMAccountName'])
-                   group_info = conn.entries[0].entry_attributes_as_dict
+            #if 'memberOf' in user_attributes:
+            for group in user_groups:
+              if 'OU=Unixgroups' in group:
+                # This is a UNIX group
+                self.log.debug("Found UNIX group: %s", group)
+                conn.search(
+                          search_base=group,
+                          search_scope=ldap3.BASE,
+                          search_filter='(objectClass=group)',
+                          attributes=['objectSid', 'sAMAccountName'])
+                group_info = conn.entries[0].entry_attributes_as_dict
 
-                   self.log.debug("Group SID lookup returned: [%s]", group_info)
-                   group_rid = int(group_info['objectSid'][0].rpartition('-')[2])
-                   group_gid = (offset + group_rid)
-                   self.log.debug("Found supplementary group ID: %d", int(group_gid))
+                self.log.debug("Group SID lookup returned: [%s]", group_info)
+                group_rid = int(group_info['objectSid'][0].rpartition('-')[2])
+                group_gid = (offset + group_rid)
+                self.log.debug("Found supplementary group ID: %d", int(group_gid))
 
             retval = {'name': username,
                       'auth_state': {
