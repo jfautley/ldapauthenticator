@@ -673,13 +673,12 @@ class LDAPAuthenticator(Authenticator):
                 attributes=['cn', 'objectSid', 'sAMAccountName'])
 
             for group_response in conn.response:
-              self.log.debug("Processing group %s", group_response)
               group      = group_response['attributes']['cn']
               group_sid  = group_response['attributes']['objectSid']
               group_acct = group_response['attributes']['sAMAccountName']
               if 'OU=Unixgroups' in group_response['dn']:
                 # This is a UNIX group
-                self.log.debug("Group SID lookup returned: [%s] for group [%s]", group_sid, group_acct)
+                self.log.debug("Group SID lookup returned: [%s] for UNIX group [%s]", group_sid, group_acct)
                 group_rid = int(group_sid.rpartition('-')[2])
                 group_gid = (offset + group_rid)
                 self.log.debug("Found supplementary group ID: %d Name: %s", int(group_gid), group_acct)
@@ -691,7 +690,7 @@ class LDAPAuthenticator(Authenticator):
                         'uid': int(userID),
                         'gid': int(groupID),
                         'name': user_attributes['sAMAccountName'][0],
-                        'sup_groups': sup_groups.join(';')
+                        'sup_groups': ';'.join(sup_groups)
                        }
                      }
 
