@@ -633,6 +633,7 @@ class LDAPAuthenticator(Authenticator):
             SSS_MAX_SLICES = (IDMAP_UPPER - IDMAP_LOWER) / IDMAP_RANGE
 
             user_attributes = self.get_user_attributes(conn, username)
+            self.log.debug("User attributes for %s: [%s]", username, user_attributes)
             splitsid = user_attributes['objectSid'][0].rpartition('-')
             domain = splitsid[0]
             rid = int(splitsid[2])
