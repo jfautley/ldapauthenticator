@@ -668,7 +668,7 @@ class LDAPAuthenticator(Authenticator):
                              search_base=group,
                              search_scope=ldap3.BASE,
                              search_filter='(objectClass=group)',
-                             attributes=['objectSid', 'dn'])
+                             attributes=['objectSid', 'sAMAccountName'])
                    group_info = conn.entries[0].entry_attributes_as_dict
 
                    self.log.debug("Group SID lookup returned: [%s]", group_info)
