@@ -684,7 +684,7 @@ class LDAPAuthenticator(Authenticator):
                 group_gid = (offset + group_rid)
                 self.log.debug("Found supplementary group ID: %d Name: %s", int(group_gid), group_acct)
 
-                sup_groups.append("%s:%d", group_acct, int(group_gid))
+                sup_groups.append("%s:%d" % (group_acct, int(group_gid)))
 
             retval = {'name': username,
                       'auth_state': {
