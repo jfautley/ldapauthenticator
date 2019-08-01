@@ -661,9 +661,10 @@ class LDAPAuthenticator(Authenticator):
 
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
-            supp_groups = []
+            sup_groups = []
             search_filter='(member:1.2.840.113556.1.4.1941:={dn})'.format(dn=escape_filter_chars(user_attributes['distinguishedName'][0]))
             search_base=self.group_search_base.split(',')[1:]
+            self.log.debug("Using search base: %s", search_base)
 
             conn.search(
                 search_base=search_base,
