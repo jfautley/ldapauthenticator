@@ -621,22 +621,19 @@ class LDAPAuthenticator(Authenticator):
                 search_base=search_base,
                 search_scope=ldap3.SUBTREE,
                 search_filter=search_filter,
-                attributes=['cn', 'objectSid'])
+                attributes=['cn', 'objectSid', 'sAMAccountName'])
 
-            for group in conn.response:
+            for group_response in conn.response:
               self.log.debug("Processing group %s", group)
+              group      = group_response['attributes']['cn']
+              group_sid  = group_response['attributes']['objectSid']
+              group_acct = group_response['attributes']['sAMAccountName']
               if 'OU=Unixgroups' in group:
                 # This is a UNIX group
-                self.log.debug("Found UNIX group: %s", group)
-                conn.search(
-                          search_base=group,
-                          search_scope=ldap3.BASE,
-                          search_filter='(objectClass=group)',
-                          attributes=['objectSid', 'sAMAccountName'])
-                group_info = conn.entries[0].entry_attributes_as_dict
+                self.log.debug("Found UNIX group: %s [%s]", group, group_acct)
 
-                self.log.debug("Group SID lookup returned: [%s]", group_info)
-                group_rid = int(group_info['objectSid'][0].rpartition('-')[2])
+                self.log.debug("Group SID lookup returned: [%s]", group_sid)
+                group_rid = int(group_sid.rpartition('-')[2])
                 group_gid = (offset + group_rid)
                 self.log.debug("Found supplementary group ID: %d", int(group_gid))
 
