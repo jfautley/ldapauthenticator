@@ -661,7 +661,18 @@ class LDAPAuthenticator(Authenticator):
 
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
-            for group in get_user_groups(login):
+            search_filter='(member:1.2.840.113556.1.4.1941:={dn})'.format(dn=escape_filter_chars(user_dn))
+            search_attribs=['cn', 'objectSid']
+            search_base=self.group_search_base.split(',')[1:]
+
+            conn.search(
+                search_base=self.search_base,
+                search_scope=ldap3.SUBTREE,
+                search_filter=search_filter,
+                attributes=search_attribs)
+
+            for group in conn.response:
+              self.log.debug("Processing group %s", group)
               if 'OU=Unixgroups' in group:
                 # This is a UNIX group
                 self.log.debug("Found UNIX group: %s", group)
