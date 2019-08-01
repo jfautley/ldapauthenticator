@@ -660,7 +660,7 @@ class LDAPAuthenticator(Authenticator):
 
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
-            for group in user_groups:
+            for group in get_user_groups(login):
               if 'OU=Unixgroups' in group:
                 # This is a UNIX group
                 self.log.debug("Found UNIX group: %s", group)
