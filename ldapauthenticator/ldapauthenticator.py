@@ -620,6 +620,7 @@ class LDAPAuthenticator(Authenticator):
                    group_sid = conn.search(
                                  search_base=group,
                                  search_scope=ldap3.BASE,
+                                 search_filter='(objectClass=group)',
                                  attributes=['objectSid'])
                    self.log.debug("Group SID lookup returned: [%s]", group_sid)
                    group_rid = group_sid['objectSid'][0].rpartition('-')[2]
