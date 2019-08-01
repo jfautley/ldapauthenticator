@@ -466,6 +466,7 @@ class LDAPAuthenticator(Authenticator):
 
                 for g in conn.response:
                     user_groups.append(g['dn'])
+                self.log.debug("User %s is a member of %d groups", user_dn, len(conn.response))
                 return user_groups
             else:
                 if len(conn.response) == 0 or 'attributes' not in conn.response[0].keys():
