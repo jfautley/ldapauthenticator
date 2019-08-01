@@ -614,6 +614,7 @@ class LDAPAuthenticator(Authenticator):
 
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
+            supp_groups = []
             search_filter='(member:1.2.840.113556.1.4.1941:={dn})'.format(dn=escape_filter_chars(user_attributes['distinguishedName'][0]))
             search_base=self.group_search_base.split(',')[1:]
 
@@ -630,18 +631,19 @@ class LDAPAuthenticator(Authenticator):
               group_acct = group_response['attributes']['sAMAccountName']
               if 'OU=Unixgroups' in group:
                 # This is a UNIX group
-                self.log.debug("Found UNIX group: %s [%s]", group, group_acct)
-
-                self.log.debug("Group SID lookup returned: [%s]", group_sid)
+                self.log.debug("Group SID lookup returned: [%s] for group [%s]", group_sid, group_acct)
                 group_rid = int(group_sid.rpartition('-')[2])
                 group_gid = (offset + group_rid)
-                self.log.debug("Found supplementary group ID: %d", int(group_gid))
+                self.log.debug("Found supplementary group ID: %d Name: %s", int(group_gid), group_acct)
+
+                sup_groups.append("%s:%d", group_acct, int(group_gid))
 
             retval = {'name': username,
                       'auth_state': {
                         'uid': int(userID),
                         'gid': int(groupID),
-                        'name': user_attributes['sAMAccountName'][0]
+                        'name': user_attributes['sAMAccountName'][0],
+                        'sup_groups': sup_groups.join(';')
                        }
                      }
 
