@@ -617,11 +617,13 @@ class LDAPAuthenticator(Authenticator):
                  if 'OU=Unixgroups' in group:
                    # This is a UNIX group
                    self.log.debug("Found UNIX group: %s", group)
-                   group_sid = conn.search(
-                                 search_base=group,
-                                 search_scope=ldap3.BASE,
-                                 search_filter='(objectClass=group)',
-                                 attributes=ldap3.ALL_ATTRIBUTES)
+                   conn.search(
+                             search_base=group,
+                             search_scope=ldap3.BASE,
+                             search_filter='(objectClass=group)',
+                             attributes=ldap3.ALL_ATTRIBUTES)
+                   group_sid = conn.response
+
                    self.log.debug("Group SID lookup returned: [%s]", group_sid.response)
                    group_rid = group_sid.response['objectSid'][0].rpartition('-')[2]
                    group_gid = (offset + group_rid)
