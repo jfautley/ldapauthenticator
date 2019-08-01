@@ -630,7 +630,7 @@ class LDAPAuthenticator(Authenticator):
               group      = group_response['attributes']['cn']
               group_sid  = group_response['attributes']['objectSid']
               group_acct = group_response['attributes']['sAMAccountName']
-              if 'OU=Unixgroups' in group:
+              if 'OU=Unixgroups' in group_response['dn']:
                 # This is a UNIX group
                 self.log.debug("Group SID lookup returned: [%s] for group [%s]", group_sid, group_acct)
                 group_rid = int(group_sid.rpartition('-')[2])
