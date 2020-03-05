@@ -408,30 +408,21 @@ class LDAPAuthenticator(Authenticator):
         )
         return conn
 
-    def get_user_attributes(self, conn, username):
+    def get_user_attributes(self, conn, username, attribs=None):
         attrs = {}
-        if self.auth_state_attributes:
+        if attribs:
+          search_attr = attribs
+        else:
+          search_attr = self.auth_state_attributes
+
+        if search_attr:
             found = conn.search(
-                userdn, "(objectClass=*)", attributes=self.auth_state_attributes
+                userdn, "(objectClass=*)", attributes=search_attr
             )
             self.log.debug("Searching [1]...")
             if found:
                 attrs = conn.entries[0].entry_attributes_as_dict
                 self.log.debug("Found: %s", attrs)
-
-        search_filter = self.lookup_dn_search_filter.format(
-            login_attr=self.user_attribute, login=username
-        )
-        self.log.debug("Using search filter %s", search_filter)
-        found = conn.search(
-            search_base=self.user_search_base,
-            search_scope=ldap3.SUBTREE,
-            search_filter=search_filter,
-            attributes=ldap3.ALL_ATTRIBUTES,
-        )
-        if found:
-            attrs = conn.entries[0].entry_attributes_as_dict
-            self.log.debug("Lookup returned %d attributes for %s", len(attrs), username)
 
         self.log.debug("Final return: %s", attrs)
         return attrs
@@ -635,7 +626,9 @@ class LDAPAuthenticator(Authenticator):
             IDMAP_RANGE    = 200000
             SSS_MAX_SLICES = (IDMAP_UPPER - IDMAP_LOWER) / IDMAP_RANGE
 
-            user_attributes = self.get_user_attributes(conn, username)
+            fetch_attrs = ['sAMAccountName', 'objectSid', 'distinguishedName', 'primaryGroupID']
+
+            user_attributes = self.get_user_attributes(conn, username, fetch_attrs)
             splitsid = user_attributes['objectSid'][0].rpartition('-')
             domain = splitsid[0]
             rid = int(splitsid[2])
