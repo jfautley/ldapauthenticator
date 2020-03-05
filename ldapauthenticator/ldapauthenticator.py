@@ -614,12 +614,6 @@ class LDAPAuthenticator(Authenticator):
         if not self.use_lookup_dn_username:
             username = data["username"]
 
-        user_info = self.get_user_attributes(conn, userdn)
-        if user_info:
-            self.log.debug("username:%s attributes:%s", username, user_info)
-            return {"name": username, "auth_state": user_info}
-        return username
-
         if self.populate_sssd:
             # Constants
             # https://pagure.io/SSSD/sssd/blob/master/f/src/lib/idmap/sss_idmap_private.h
@@ -696,7 +690,11 @@ class LDAPAuthenticator(Authenticator):
 
             return retval
         else:
-            return username
+          user_info = self.get_user_attributes(conn, userdn)
+          if user_info:
+              self.log.debug("username:%s attributes:%s", username, user_info)
+              return {"name": username, "auth_state": user_info}
+          return username
 
 
     @gen.coroutine
