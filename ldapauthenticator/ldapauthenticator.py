@@ -414,12 +414,15 @@ class LDAPAuthenticator(Authenticator):
             found = conn.search(
                 userdn, "(objectClass=*)", attributes=self.auth_state_attributes
             )
+            self.log.debug("Searching [1]...")
             if found:
                 attrs = conn.entries[0].entry_attributes_as_dict
+                self.log.debug("Found: %s", attrs)
 
         search_filter = self.lookup_dn_search_filter.format(
             login_attr=self.user_attribute, login=username
         )
+        self.log.debug("Using search filter %s", search_filter)
         found = conn.search(
             search_base=self.user_search_base,
             search_scope=ldap3.SUBTREE,
@@ -430,6 +433,7 @@ class LDAPAuthenticator(Authenticator):
             attrs = conn.entries[0].entry_attributes_as_dict
             self.log.debug("Lookup returned %d attributes for %s", len(attrs), username)
 
+        self.log.debug("Final return: %s", attrs)
         return attrs
 
     @gen.coroutine
