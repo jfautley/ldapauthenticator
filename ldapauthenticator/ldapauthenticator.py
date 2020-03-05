@@ -675,7 +675,7 @@ class LDAPAuthenticator(Authenticator):
 
                 sup_groups.append("%s:%d" % (group_acct, int(group_gid)))
 
-            retval = {'name': username,
+            retval = {'name': login,
                       'auth_state': {
                         'uid': int(userID),
                         'gid': int(groupID),
@@ -691,7 +691,7 @@ class LDAPAuthenticator(Authenticator):
           user_info = self.get_user_attributes(conn, userdn)
           if user_info:
               self.log.debug("username:%s attributes:%s", username, user_info)
-              return {"name": username, "auth_state": user_info}
+              return {"name": login, "auth_state": user_info}
           return username
 
 
