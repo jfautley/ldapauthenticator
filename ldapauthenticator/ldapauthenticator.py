@@ -415,6 +415,8 @@ class LDAPAuthenticator(Authenticator):
         else:
           search_attr = self.auth_state_attributes
 
+        self.log.debug("attribs[%s], self.auth_state_attributes[%s], search_attr[%s]", attribs, self.auth_state_attributes, search_attr)
+
         if search_attr:
             found = conn.search(
                 userdn, "(objectClass=*)", attributes=search_attr
