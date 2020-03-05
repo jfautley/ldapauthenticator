@@ -430,7 +430,6 @@ class LDAPAuthenticator(Authenticator):
             attrs = conn.entries[0].entry_attributes_as_dict
             self.log.debug("Lookup returned %d attributes for %s", len(attrs), username)
 
->>>>>>> Fix login in user attributes
         return attrs
 
     @gen.coroutine
@@ -591,29 +590,29 @@ class LDAPAuthenticator(Authenticator):
                             self.log.info('User %s is a member of permitted group %s', username, group)
                             return username
             else:
-    for group in self.allowed_groups:
-        group_filter = (
-            "(|"
-            "(member={userdn})"
-            "(uniqueMember={userdn})"
-            "(memberUid={uid})"
-            ")"
-        )
-        group_filter = group_filter.format(userdn=userdn, uid=username)
-        group_attributes = ["member", "uniqueMember", "memberUid"]
-        found = conn.search(
-            group,
-            search_scope=ldap3.BASE,
-            search_filter=group_filter,
-            attributes=group_attributes,
-        )
-        if found:
-            break
-            if not found:
-                # If we reach here, then none of the groups matched
-                msg = "username:{username} User not in any of the allowed groups"
-                self.log.warning(msg.format(username=username))
-                return None
+              for group in self.allowed_groups:
+                  group_filter = (
+                      "(|"
+                      "(member={userdn})"
+                      "(uniqueMember={userdn})"
+                      "(memberUid={uid})"
+                      ")"
+                  )
+                  group_filter = group_filter.format(userdn=userdn, uid=username)
+                  group_attributes = ["member", "uniqueMember", "memberUid"]
+                  found = conn.search(
+                      group,
+                      search_scope=ldap3.BASE,
+                      search_filter=group_filter,
+                      attributes=group_attributes,
+                  )
+                  if found:
+                      break
+                      if not found:
+                          # If we reach here, then none of the groups matched
+                          msg = "username:{username} User not in any of the allowed groups"
+                          self.log.warning(msg.format(username=username))
+                          return None
 
         if not self.use_lookup_dn_username:
             username = data["username"]
