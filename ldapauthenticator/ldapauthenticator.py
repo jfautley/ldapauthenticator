@@ -428,7 +428,7 @@ class LDAPAuthenticator(Authenticator):
         return attrs
 
     # http://www.whitemiceconsulting.com/ldapsearchbyobjectsid
-    def sid2hex(sid):
+    def sid2hex(self, sid):
       s = ['\\{:02X}'.format(ord(x)) for x in sid]
       return ''.join(s)
 
