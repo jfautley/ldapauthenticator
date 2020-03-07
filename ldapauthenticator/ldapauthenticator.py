@@ -651,12 +651,16 @@ class LDAPAuthenticator(Authenticator):
                 # Lookup our group name from the ID
                 groupSID = '{}-{}'.format(domain, user_attributes['primaryGroupID'][0])
                 search_base=self.group_search_base.split(',')[1:]
-                res = conn.search(
-                  search_base=search_base,
-                  search_scope=ldap3.SUBTREE,
-                  search_filter='(objectSid={})'.format(groupSID),
-                  attributes=['cn', 'objectSid', 'sAMAccountName'])
-                self.log.debug("ObjectSID: [%s], Results: [%s]", groupSID, res)
+                if conn.search(
+                     search_base=search_base,
+                     search_scope=ldap3.SUBTREE,
+                     search_filter='(objectSid={})'.format(groupSID),
+                     attributes=['cn', 'objectSid', 'sAMAccountName']):
+                  self.log.debug('Primary group results: %s', conn.result[0])
+                  groupName = conn.result[0]['sAMAccountName']
+                else:
+                  groupName = groupID
+
 
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
@@ -688,6 +692,7 @@ class LDAPAuthenticator(Authenticator):
                       'auth_state': {
                         'uid': int(userID),
                         'gid': int(groupID),
+                        'group': groupName,
                         'name': user_attributes['sAMAccountName'][0],
                         'sup_groups': ';'.join(sup_groups)
                        }
