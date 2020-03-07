@@ -654,7 +654,7 @@ class LDAPAuthenticator(Authenticator):
                 res = conn.search(
                   search_base=search_base,
                   search_scope=ldap3.SUBTREE,
-                  search_filter='(objectSid={}'.format(groupSID),
+                  search_filter='(objectSid={})'.format(groupSID),
                   attributes=['cn', 'objectSid', 'sAMAccountName'])
                 self.log.debug("ObjectSID: [%s], Results: [%s]", groupSID, res)
 
