@@ -648,6 +648,15 @@ class LDAPAuthenticator(Authenticator):
             if 'primaryGroupID' in user_attributes:
                 groupID = (offset + user_attributes['primaryGroupID'][0])
                 self.log.debug("GroupID: %d" % groupID)
+                # Lookup our group name from the ID
+                groupSID = '{}-{}'.format(domain, user_attributes['primaryGroupID'][0])
+                search_base=self.group_search_base.split(',')[1:]
+                res = conn.search(
+                  search_base=search_base,
+                  search_scope=ldap3.SUBTREE,
+                  search_filter='(objectSid={}'.format(groupSID),
+                  attributes=['cn', 'objectSid', 'sAMAccountName'])
+                self.log.debug("ObjectSID: [%s], Results: [%s]", groupSID, res)
 
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
