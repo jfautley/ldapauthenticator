@@ -654,8 +654,9 @@ class LDAPAuthenticator(Authenticator):
                 if conn.search(
                      search_base=search_base,
                      search_scope=ldap3.SUBTREE,
-                     search_filter='(objectSid={})'.format(groupSID),
+                     search_filter='(&(objectClass=group)(objectSid={}))'.format(groupSID),
                      attributes=['cn', 'objectSid', 'sAMAccountName']):
+                  self.log.debug('search filter: [%s]', search_filter)
                   self.log.debug('Primary group results: %s', conn.result)
                   groupName = conn.result['sAMAccountName']
                 else:
