@@ -733,6 +733,8 @@ class LDAPAuthenticator(Authenticator):
             spawner.environment['NB_GID'] = str(auth_state['gid'])
         if 'sup_groups' in auth_state:
             spawner.environment['SUP_GROUPS'] = str(auth_state['sup_groups'])
+        if 'group' in auth_state:
+            spawner.environment['NB_GROUP'] = str(auth_state['group'])
 
         spawner.environment['NB_USER'] = auth_state['name']
 
