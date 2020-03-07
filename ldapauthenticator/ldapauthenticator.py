@@ -687,7 +687,7 @@ class LDAPAuthenticator(Authenticator):
 
             if primaryGroupName is None:
               # If we didn't get it before, we need to search by SID
-              sid_hex = sid2hex('{}-{}'.format(domain, user_attributes['primaryGroupID'][0]))
+              sid_hex = self.sid2hex('{}-{}'.format(domain, user_attributes['primaryGroupID'][0]))
               res = conn.search(
                  search_base=search_base,
                  search_scope=ldap3.SUBTREE,
