@@ -695,7 +695,7 @@ class LDAPAuthenticator(Authenticator):
                  attributes=['objectSid', 'sAMAccountName'])
               if res:
                 self.log.debug("Result for SID to Group: %s", conn.response)
-                primaryGroupName = conn.response[0]['sAMAccountName']
+                primaryGroupName = conn.response[0]['attributes']['sAMAccountName']
               else:
                 primaryGroupName = int(groupID)
 
