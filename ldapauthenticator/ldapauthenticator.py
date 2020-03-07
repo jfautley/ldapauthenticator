@@ -656,8 +656,8 @@ class LDAPAuthenticator(Authenticator):
                      search_scope=ldap3.SUBTREE,
                      search_filter='(objectSid={})'.format(groupSID),
                      attributes=['cn', 'objectSid', 'sAMAccountName']):
-                  self.log.debug('Primary group results: %s', conn.result[0])
-                  groupName = conn.result[0]['sAMAccountName']
+                  self.log.debug('Primary group results: %s', conn.result)
+                  groupName = conn.result['sAMAccountName']
                 else:
                   groupName = groupID
 
