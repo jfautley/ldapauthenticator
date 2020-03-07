@@ -3,7 +3,7 @@ import mmh3
 
 import ldap3
 from jupyterhub.auth import Authenticator
-from ldap3.utils.conv import escape_filter_chars
+from ldap3.utils.conv import escape_filter_chars, escape_bytes
 from tornado import gen
 from traitlets import Bool
 from traitlets import Int
@@ -648,20 +648,6 @@ class LDAPAuthenticator(Authenticator):
             if 'primaryGroupID' in user_attributes:
                 groupID = (offset + user_attributes['primaryGroupID'][0])
                 self.log.debug("GroupID: %d" % groupID)
-                # Lookup our group name from the ID
-                groupSID = '{}-{}'.format(domain, user_attributes['primaryGroupID'][0])
-                search_base=self.group_search_base.split(',')[1:]
-                if conn.search(
-                     search_base=search_base,
-                     search_scope=ldap3.SUBTREE,
-                     search_filter='(&(objectClass=group)(objectSid={}))'.format(groupSID),
-                     attributes=['cn', 'objectSid', 'sAMAccountName']):
-                  self.log.debug('SID: [%s]', groupSID)
-                  self.log.debug('Primary group results: %s', conn.result)
-                  groupName = conn.result['sAMAccountName']
-                else:
-                  groupName = groupID
-
 
             # Add supplementary groups (if available)
             #if 'memberOf' in user_attributes:
@@ -677,6 +663,10 @@ class LDAPAuthenticator(Authenticator):
                 attributes=['cn', 'objectSid', 'sAMAccountName'])
 
             for group_response in conn.response:
+              # Is this our Primary Group SID?
+              if group_response['attributes']['objectSid'] == '{}-{}'.format(domain, user_attributes['primaryGroupID'][0]):
+                primaryGroupName = group_response['attributes']['sAMAccountName']
+
               group      = group_response['attributes']['cn']
               group_sid  = group_response['attributes']['objectSid']
               group_acct = group_response['attributes']['sAMAccountName']
@@ -689,11 +679,14 @@ class LDAPAuthenticator(Authenticator):
 
                 sup_groups.append("%s:%d" % (group_acct, int(group_gid)))
 
+            if not primaryGroupName:
+              primaryGroupName = int(groupID)
+
             retval = {'name': login,
                       'auth_state': {
                         'uid': int(userID),
                         'gid': int(groupID),
-                        'group': groupName,
+                        'group': primaryGroupName,
                         'name': user_attributes['sAMAccountName'][0],
                         'sup_groups': ';'.join(sup_groups)
                        }
