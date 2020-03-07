@@ -427,6 +427,11 @@ class LDAPAuthenticator(Authenticator):
         self.log.debug("Final return: %s", attrs)
         return attrs
 
+    # http://www.whitemiceconsulting.com/ldapsearchbyobjectsid
+    def sid2hex(sid):
+      s = ['\\{:02X}'.format(ord(x)) for x in sid]
+      return ''.join(s)
+
     @gen.coroutine
     def authenticate(self, handler, data):
         username = data["username"]
@@ -662,6 +667,7 @@ class LDAPAuthenticator(Authenticator):
                 search_filter=search_filter,
                 attributes=['cn', 'objectSid', 'sAMAccountName'])
 
+            primaryGroupName = None
             for group_response in conn.response:
               # Is this our Primary Group SID?
               if group_response['attributes']['objectSid'] == '{}-{}'.format(domain, user_attributes['primaryGroupID'][0]):
@@ -679,8 +685,19 @@ class LDAPAuthenticator(Authenticator):
 
                 sup_groups.append("%s:%d" % (group_acct, int(group_gid)))
 
-            if not primaryGroupName:
-              primaryGroupName = int(groupID)
+            if primaryGroupName is None:
+              # If we didn't get it before, we need to search by SID
+              sid_hex = sid2hex('{}-{}'.format(domain, user_attributes['primaryGroupID'][0]))
+              res = conn.search(
+                 search_base=search_base,
+                 search_scope=ldap3.SUBTREE,
+                 search_filter='(&(objectClass=group)(objectSid={0}))'.format(sid_hex),
+                 attributes=['objectSid', 'sAMAccountName'])
+              if res:
+                self.log.debug("Result for SID to Group: %s", conn.response)
+                primaryGroupName = conn.response['sAMAccountName']
+              else:
+                primaryGroupName = int(groupID)
 
             retval = {'name': login,
                       'auth_state': {
