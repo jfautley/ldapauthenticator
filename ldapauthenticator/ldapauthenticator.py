@@ -629,6 +629,7 @@ class LDAPAuthenticator(Authenticator):
             fetch_attrs = ['sAMAccountName', 'objectSid', 'distinguishedName', 'primaryGroupID']
 
             user_attributes = self.get_user_attributes(conn, username, fetch_attrs)
+            self.log.debug(user_attributes)
             splitsid = user_attributes['objectSid'][0].rpartition('-')
             domain = splitsid[0]
             rid = int(splitsid[2])
