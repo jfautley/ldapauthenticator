@@ -410,6 +410,7 @@ class LDAPAuthenticator(Authenticator):
 
     def get_user_attributes(self, conn, username, attribs=None):
         attrs = {}
+        self.log.debug("get_user_attributes: %s", attribs)
         if attribs:
           search_attr = attribs
         else:
